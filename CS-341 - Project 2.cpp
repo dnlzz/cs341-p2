@@ -11,6 +11,7 @@ Prof. Nakayama
 #include <cctype>
 #include <string>
 #include <fstream>
+#include <stack>
 
 using namespace std;
 
@@ -37,6 +38,7 @@ enum State {
 string analyzeStr(string s) {
 	string verdict = "Reject.";
 	State state = START;
+	stack<char> stk;
 
 	for (int i = 0; i <= s.length(); i++) {
 		switch(state) {
@@ -48,7 +50,8 @@ string analyzeStr(string s) {
 			//
 			if (s[i] == '$') {
 				state = INQ1;
-				cout << "Read: " << s[i] << "\tpop: nothing\t" << "push: $" << endl;
+				stk.push('$');
+				cout << "Read: " << s[i] << "\tpop: nothing\t" << "push: $\t" << "TOS: " << stk.top() << endl;
 			} else {
 				state = CRASH;
 			}
@@ -58,13 +61,15 @@ string analyzeStr(string s) {
 			//
 			cout << "q" << state << endl;
 			if (s[i] == '(') {
-				state = INQ2;
-				cout << "Read: " << s[i] << "\tpop: nothing\t" << "push: (" << endl;
+				state = INQ1;
+				stk.push('(');
+				cout << "Read: " << s[i] << "\tpop: nothing\t" << "push: ("  << "TOS: " << stk.top()<< endl;
 			} else if ((s[i] != '+') || (s[i] != '-') || (s[i] != '/') || (s[i] != '*')) {
 				state = INQ2;
-				cout << "Read: " << s[i] << "\tpop: nothing\t" << "push: nothing" << endl;
-			} else {
+				cout << "Read: " << s[i] << "\tpop: nothing\t" << "push: nothing"  << "TOS: " << stk.top()<< endl;
+			} else if ((s[i] == '+') || (s[i] == '-') || (s[i] == '/') || (s[i] == '*')) {
 				state = CRASH;
+				cout << "Read: " << s[i] << "\tpop: nothing\t" << "push: nothing" << "TOS: " << stk.top() << endl;
 			}
 			break;
 
@@ -73,15 +78,16 @@ string analyzeStr(string s) {
 			cout << "q" << state << endl;
 			if ((s[i] != '+') || (s[i] != '-') || (s[i] != '/') || (s[i] != '*')) {
 				state = INQ3;
-				cout << "Read: " << s[i] << "\tpop: nothing\t" << "push: nothing" << endl;
-			} else if ((s[i] == '$') && (1+1=2 /*stack.peek() == '$'    check if top of stack is $*/)){
+				cout << "Read: " << s[i] << "\tpop: nothing\t" << "push: nothing" << "TOS: " << stk.top() << endl;
+			} else if ((s[i] == '$') && (stk.top() == '$') ){
 				state = ACCEPT;
-				cout << "Read: " << s[i] << "\tpop: $\t" << "push: nothing" << endl;
-			} else if (s[i] == '(') {
-				state = CRASH;
+				cout << "Read: " << s[i] << "\tpop: $\t" << "push: nothing" << "TOS: " << stk.top() << endl;
+			} else if(s[i] == '(') {
+				state = INQ1;
+				stk.push('(');
 			} else {
 				state = INQ2;
-				cout << "Read: " << s[i] << "\tpop: nothing\t" << "push: nothing" << endl;
+				cout << "Read: " << s[i] << "\tpop: nothing\t" << "push: nothing" << "TOS: " << stk.top() << endl;
 			}		
 			break;
 
@@ -90,6 +96,7 @@ string analyzeStr(string s) {
 			cout << "q" << state << endl;
 			if ((s[i] != '+') || (s[i] != '-') || (s[i] != '/') || (s[i] != '*') || (s[i] != '(') || (s[i] != ')')) {
 				state = INQ4;
+				cout << "Read: " << s[i] << "\tpop: nothing\t" << "push: nothing" << "TOS: " << stk.top() << endl;
 			} else {
 				state = CRASH;
 			}
@@ -100,25 +107,44 @@ string analyzeStr(string s) {
 			cout << "q" << state << endl;
 			if (s[i] == '(') {
 				state = INQ1;
-			} else if ((s[i] == ')')  && (1+1=2 /*stack.peek() == '$'    check if top of stack is $*/)){
+				stk.push('(');
+					cout << "Read: " << s[i] << "\tpop: (\t" << "push: nothing" << "TOS: " << stk.top() << endl;
+			} else if ((s[i] == ')')  && (stk.top() == '(' /*stack.peek() == '$'    check if top of stack is $*/)){
 				state = INQ5;
+				stk.pop();
+				cout << "Read: " << s[i] << "\tpop: (\t" << "push: nothing" << "TOS: " << stk.top() << endl;
+			} else if ((s[i] == ')')  && (stk.top() != '(' /*stack.peek() == '$'    check if top of stack is $*/)){
+				state = CRASH;
+				cout << "Read: " << s[i] << "\tpop: ( FAILED\t" << "push: nothing" << "TOS: " << stk.top() << endl;
 			} else if ((s[i] == '+') || (s[i] == '-') || (s[i] == '/') || (s[i] == '*')) {
 				state = INQ3;
-			} 
+				cout << "Read: " << s[i] << "\tpop: nothing\t" << "push: nothing" << "TOS: " << stk.top() << endl;
+			} else if ((s[i] == '$') && (stk.top() == '$' /*stack.peek() == '$'    check if top of stack is $*/)){
+				state = ACCEPT;
+				cout << "Read: " << s[i] << "\tpop: $\t" << "push: nothing" << "TOS: " << stk.top() << endl;
+			} else {
+				state = INQ4;
+				cout << "Read: " << s[i] << "\tpop: nothing\t" << "push: nothing" << "TOS: " << stk.top() << endl;
+			}
 			break;
 
 			case INQ5:
 			//
 			cout << "q" << state << endl;
-			if ((s[i] == '$') && (1+1=2 /*stack.peek() == '$'    check if top of stack is $*/)) {
+			if ((s[i] == '$') && (stk.top() == '$' /*stack.peek() == '$'    check if top of stack is $*/)) {
 				state = ACCEPT;
-				cout << "Read: " << s[i] << "\tpop: $\t" << "push: nothing" << endl;
+				cout << "Read: " << s[i] << "\tpop: $\t" << "push: nothing" << "TOS: " << stk.top() << endl;
 			} else if (s[i] == '(') {
 				state = INQ1;
-				cout << "Read: " << s[i] << "\tpop: nothing\t" << "push: (" << endl;
+				stk.push('(');
+				cout << "Read: " << s[i] << "\tpop: nothing\t" << "push: (" << "TOS: " << stk.top() << endl;
+			} else if ((s[i] == ')') && (stk.top() == '(') ){
+				state = INQ5;
+				stk.pop();
+				cout << "Read: " << s[i] << "\tpop: (\t" << "push: nothing" << "TOS: " << stk.top() << endl;
 			} else if ((s[i] != '+') || (s[i] != '-') || (s[i] != '/') || (s[i] != '*')) {
 				state = INQ2;
-				cout << "Read: " << s[i] << "\tpop: nothing\t" << "push: nothing" << endl;
+				cout << "Read: " << s[i] << "\tpop: nothing\t" << "push: nothing" << "TOS: " << stk.top() << endl;
 			} else {
 				state = CRASH;
 			}
@@ -127,6 +153,7 @@ string analyzeStr(string s) {
 			case ACCEPT:
 			//
 			cout << "ACCEPT" << endl;
+			verdict = "Accept.";
 			break;
 
 			case CRASH:
@@ -141,9 +168,10 @@ return verdict;
 
 };
 
+
 bool isTerminal(string c) {
 	string alpha = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ_0123456789";
-	if (alhpa.find(c) >= 0)
+	if (alpha.find(c) >= 0)
 		return true;
 	else
 		return false;
@@ -154,8 +182,8 @@ int main()
 	bool done = false;
 	string str;
 	char go;
-/*
-	ifstream infile("prog1test.txt");
+
+	ifstream infile("prog2test.txt");
 
 	while (infile >> go >> str) {
 		cout << "---------------------" << endl;
@@ -163,7 +191,8 @@ int main()
 		cout << "Verdict:  " << analyzeStr(str) << endl;
 		cout << "---------------------" << endl << endl;
 	}
-*/
+
+/*
 	//Check to see if the user wants to enter a string to test.
 	cout << "Do you want to enter a string? (y/n)  ";
 	cin >> go;
@@ -183,6 +212,8 @@ int main()
 			done = true;
 		}
 	}
+
+*/
 	//else {
 	//	cout << "Terminated.";
 	//}
