@@ -90,9 +90,12 @@ string analyzeStr(string s) {
 			} else if (isOperator(s[i])) {
 				state = INQ3;
 				cout << "Read: " << s[i] << "\tpop: nothing\t" << "push: nothing" << "TOS: " << stk.top() << endl;
-			} else if (s[i] == ')') {
-				state = CRASH;
+			} else if ((s[i] == ')') && (stk.top() == '(')) {
+				state = INQ5;
 				stk.pop();
+				cout << "Read: " << s[i] << "\tpop: (\t" << "push: nothing"  << "TOS: " << stk.top()<< endl;
+			} else {
+				state = CRASH;
 				cout << "Read: " << s[i] << "\tpop: (\t" << "push: nothing" << "TOS: " << stk.top() << endl;
 			}
 			/*
