@@ -13,7 +13,12 @@ Prof. Nakayama
 #include <fstream>
 #include <stack>
 
+#define TRUE 1;
+
 using namespace std;
+
+bool isTerminal(char c);
+bool isOperator(char c);
 
 /**
 	Each enum value represents a different state in the PDA.
@@ -64,11 +69,11 @@ string analyzeStr(string s) {
 				state = INQ1;
 				stk.push('(');
 				cout << "Read: " << s[i] << "\tpop: nothing\t" << "push: ("  << "TOS: " << stk.top()<< endl;
-			} else if ((s[i] != '+') || (s[i] != '-') || (s[i] != '/') || (s[i] != '*')) {
-				state = INQ2;
-				cout << "Read: " << s[i] << "\tpop: nothing\t" << "push: nothing"  << "TOS: " << stk.top()<< endl;
-			} else if ((s[i] == '+') || (s[i] == '-') || (s[i] == '/') || (s[i] == '*')) {
+			} else if (isOperator(s[i])) {
 				state = CRASH;
+				cout << "Read: " << s[i] << "\tpop: nothing\t" << "push: nothing"  << "TOS: " << stk.top()<< endl;
+			} else if (isTerminal(s[i])) {
+				state = INQ2;
 				cout << "Read: " << s[i] << "\tpop: nothing\t" << "push: nothing" << "TOS: " << stk.top() << endl;
 			}
 			break;
@@ -76,6 +81,21 @@ string analyzeStr(string s) {
 			case INQ2:
 			//
 			cout << "q" << state << endl;
+			if ((s[i] == '$') && (stk.top() == '$') ){
+				state = ACCEPT;
+				cout << "Read: " << s[i] << "\tpop: $\t" << "push: nothing" << "TOS: " << "stack empty" << endl;
+			} else if (isTerminal(s[i])) {
+				state = INQ2;
+				cout << "Read: " << s[i] << "\tpop: nothing\t" << "push: nothing" << "TOS: " << stk.top() << endl;
+			} else if (isOperator(s[i])) {
+				state = INQ3;
+				cout << "Read: " << s[i] << "\tpop: nothing\t" << "push: nothing" << "TOS: " << stk.top() << endl;
+			} else if (s[i] == ')') {
+				state = CRASH;
+				stk.pop();
+				cout << "Read: " << s[i] << "\tpop: (\t" << "push: nothing" << "TOS: " << stk.top() << endl;
+			}
+			/*
 			if ((s[i] != '+') || (s[i] != '-') || (s[i] != '/') || (s[i] != '*')) {
 				state = INQ3;
 				cout << "Read: " << s[i] << "\tpop: nothing\t" << "push: nothing" << "TOS: " << stk.top() << endl;
@@ -88,50 +108,104 @@ string analyzeStr(string s) {
 			} else {
 				state = INQ2;
 				cout << "Read: " << s[i] << "\tpop: nothing\t" << "push: nothing" << "TOS: " << stk.top() << endl;
-			}		
+			}	
+			*/	
 			break;
 
 			case INQ3:
 			//
 			cout << "q" << state << endl;
-			if ((s[i] != '+') || (s[i] != '-') || (s[i] != '/') || (s[i] != '*') || (s[i] != '(') || (s[i] != ')')) {
+			if (isTerminal(s[i])) {
 				state = INQ4;
 				cout << "Read: " << s[i] << "\tpop: nothing\t" << "push: nothing" << "TOS: " << stk.top() << endl;
+			} else if (s[i] == '(') {
+				state = INQ1;
+				stk.push('(');
+				cout << "Read: " << s[i] << "\tpop: nothing\t" << "push: ("  << "TOS: " << stk.top()<< endl;
 			} else {
 				state = CRASH;
+				cout << "Read: " << s[i] << "\tpop: nothing\t" << "push: nothing" << "TOS: " << stk.top() << endl;
 			}
 			break;
+
 
 			case INQ4:
 			//
 			cout << "q" << state << endl;
+			if ((s[i] == '$') && (stk.top() == '$') ){
+				state = ACCEPT;
+				cout << "Read: " << s[i] << "\tpop: $\t" << "push: nothing" << "TOS: " << "stack empty" << endl;
+			} else if ((s[i] == ')') && (stk.top() == '(')) {
+				state = INQ5;
+				stk.pop();
+				cout << "Read: " << s[i] << "\tpop: (\t" << "push: nothing"  << "TOS: " << stk.top()<< endl;
+			} else if (isTerminal(s[i])) {
+				state = INQ4;
+				cout << "Read: " << s[i] << "\tpop: nothing\t" << "push: nothing" << "TOS: " << stk.top() << endl;
+			} else if (s[i] == '(') {
+				state = INQ1;
+				stk.push('(');
+				cout << "Read: " << s[i] << "\tpop: nothing\t" << "push: ("  << "TOS: " << stk.top()<< endl;
+			} else if (isOperator(s[i])) {
+				state = INQ3;
+				cout << "Read: " << s[i] << "\tpop: nothing\t" << "push: nothing" << "TOS: " << stk.top() << endl;
+			} else {
+				state = CRASH;
+				cout << "Read: " << s[i] << "\tpop: nothing\t" << "push: nothing" << "TOS: " << stk.top() << endl;
+			}
+
+
+			/*
 			if (s[i] == '(') {
 				state = INQ1;
 				stk.push('(');
 					cout << "Read: " << s[i] << "\tpop: (\t" << "push: nothing" << "TOS: " << stk.top() << endl;
-			} else if ((s[i] == ')')  && (stk.top() == '(' /*stack.peek() == '$'    check if top of stack is $*/)){
+			} else if ((s[i] == ')')  && (stk.top() == '(')){
 				state = INQ5;
 				stk.pop();
 				cout << "Read: " << s[i] << "\tpop: (\t" << "push: nothing" << "TOS: " << stk.top() << endl;
-			} else if ((s[i] == ')')  && (stk.top() != '(' /*stack.peek() == '$'    check if top of stack is $*/)){
+			} else if ((s[i] == ')')  && (stk.top() != '(')){
 				state = CRASH;
 				cout << "Read: " << s[i] << "\tpop: ( FAILED\t" << "push: nothing" << "TOS: " << stk.top() << endl;
 			} else if ((s[i] == '+') || (s[i] == '-') || (s[i] == '/') || (s[i] == '*')) {
 				state = INQ3;
 				cout << "Read: " << s[i] << "\tpop: nothing\t" << "push: nothing" << "TOS: " << stk.top() << endl;
-			} else if ((s[i] == '$') && (stk.top() == '$' /*stack.peek() == '$'    check if top of stack is $*/)){
+			} else if ((s[i] == '$') && (stk.top() == '$')){
 				state = ACCEPT;
 				cout << "Read: " << s[i] << "\tpop: $\t" << "push: nothing" << "TOS: " << stk.top() << endl;
 			} else {
 				state = INQ4;
 				cout << "Read: " << s[i] << "\tpop: nothing\t" << "push: nothing" << "TOS: " << stk.top() << endl;
 			}
+			*/
 			break;
 
 			case INQ5:
 			//
 			cout << "q" << state << endl;
-			if ((s[i] == '$') && (stk.top() == '$' /*stack.peek() == '$'    check if top of stack is $*/)) {
+			if ((s[i] == '$') && (stk.top() == '$') ){
+				state = ACCEPT;
+				cout << "Read: " << s[i] << "\tpop: $\t" << "push: nothing" << "TOS: " << "stack empty" << endl;
+			} else if (s[i] == '(') {
+				state = INQ1;
+				stk.push('(');
+				cout << "Read: " << s[i] << "\tpop: nothing\t" << "push: ("  << "TOS: " << stk.top()<< endl;
+			} else if (isTerminal(s[i])) {
+				state = INQ2;
+				cout << "Read: " << s[i] << "\tpop: nothing\t" << "push: nothing" << "TOS: " << stk.top() << endl;
+			} else if (s[i] == ')') {
+				state = INQ5;
+				stk.pop();
+				cout << "Read: " << s[i] << "\tpop: (\t" << "push: nothing" << "TOS: " << stk.top() << endl;
+			} else if (isOperator(s[i])) {
+				state = INQ3;
+				cout << "Read: " << s[i] << "\tpop: nothing\t" << "push: nothing" << "TOS: " << stk.top() << endl;
+			} else {
+				state = CRASH;
+				cout << "Read: " << s[i] << "\tpop: nothing\t" << "push: nothing" << "TOS: " << stk.top() << endl;
+			}
+			/*
+			if ((s[i] == '$') && (stk.top() == '$' )) {
 				state = ACCEPT;
 				cout << "Read: " << s[i] << "\tpop: $\t" << "push: nothing" << "TOS: " << stk.top() << endl;
 			} else if (s[i] == '(') {
@@ -148,17 +222,19 @@ string analyzeStr(string s) {
 			} else {
 				state = CRASH;
 			}
+
+			*/
 			break;
 
 			case ACCEPT:
 			//
-			cout << "ACCEPT" << endl;
 			verdict = "Accept.";
 			break;
 
 			case CRASH:
 			//
 			cout << "No recovering now..." << endl;
+			return verdict;
 			break;
 
 		}
@@ -169,9 +245,17 @@ return verdict;
 };
 
 
-bool isTerminal(string c) {
+bool isTerminal(char c) {
 	string alpha = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ_0123456789";
-	if (alpha.find(c) >= 0)
+	if (alpha.find(c) != string::npos)
+		return true;
+	else
+		return false;
+}
+
+bool isOperator(char c) {
+	string alpha = "+-*/";
+	if (alpha.find(c) != string::npos)
 		return true;
 	else
 		return false;
